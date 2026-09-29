@@ -22,7 +22,7 @@
     "sync:corridor-docs": "node scripts/sync-corridor-docs-mirror.mjs"
   },
   "dependencies": {
-    "lucide-react": "^1.47.0",
+    "lucide-react": "^1.48.0",
     "next": "15.5.25",
     "react": "^19.3.0",
     "react-dom": "^19.2.8",
