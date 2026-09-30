@@ -46,14 +46,16 @@ describe("claim review object version", () => {
     expect(changedReviewMetadata.contentDigest).toBe(baseline.contentDigest);
   });
 
-  it.each([
+  const materialChanges: Array<[string, Partial<Claim>]> = [
     ["wording", { plainLanguageClaim: "Materially changed public claim wording." }],
     ["evidence", { evidenceLinks: [] }],
-    ["confidence", { confidence: "medium" as const }],
-    ["publication posture", { publicationDecision: "withhold" as const }],
+    ["confidence", { confidence: "medium" }],
+    ["publication posture", { publicationDecision: "withhold" }],
     ["right of reply", { rightOfReplyRequired: true }],
     ["freshness limit", { staleAfter: "2027-01-01" }],
-  ])("changes the digest when %s changes", (_label, overrides) => {
+  ];
+
+  it.each(materialChanges)("changes the digest when %s changes", (_label, overrides) => {
     const baseline = makeClaimReviewObjectVersion(cloneClaim());
     const changed = makeClaimReviewObjectVersion(cloneClaim(overrides));
 
