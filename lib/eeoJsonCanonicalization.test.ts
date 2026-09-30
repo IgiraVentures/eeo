@@ -47,6 +47,21 @@ describe("canonicalizeEeoJson", () => {
     );
   });
 
+  it("fails closed for sparse arrays and custom array properties", () => {
+    const sparse = new Array(2);
+    sparse[1] = "value";
+
+    const custom = ["value"] as string[] & { extra?: string };
+    custom.extra = "not part of JSON array semantics";
+
+    expect(() => canonicalizeEeoJson(sparse)).toThrow(
+      EeoJsonCanonicalizationError
+    );
+    expect(() => canonicalizeEeoJson(custom)).toThrow(
+      EeoJsonCanonicalizationError
+    );
+  });
+
   it("fails closed for cyclic input", () => {
     const value: Record<string, unknown> = {};
     value.self = value;
