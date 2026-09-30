@@ -114,7 +114,8 @@ Do not add `CLAIM-DRC-CO-002` to the release manifest, mark it approved, create 
 
 ## Last checks run
 
-- 2026-09-30: P0/P1 release-integrity branch prepared; verification is pending GitHub Actions and must not be reported as passed until current-head CI completes successfully.
+- 2026-09-30: Baseline React runtime alignment was repaired independently on `main` by PR #149; current `main` CI passed. The P0/P1 release-integrity branch requires a fresh current-base CI run before merge.
+- 2026-09-30: The first P0/P1 CI run passed frozen install, route discipline, temporal dormancy, lint, typecheck, and all release-integrity tests, but full tests stopped on the then-existing `main` React 19.3.0 / ReactDOM 19.2.8 mismatch; build was therefore skipped. This was reproduced on the old `main` baseline and was not introduced by P0/P1.
 - 2026-07-30: Clean `pnpm install --frozen-lockfile` and `pnpm verify` passed after React and ReactDOM alignment; 14 test files and 97 tests passed before later governance tests were added.
 - 2026-07-30: CI passed for the review-requirement model, manifest signoff gate, protected reviewer panel, and reviewer-panel regression increments, including frozen install, route checks, lint, typecheck, tests, and production build.
 - Added unit coverage for governed sign-off version, authority, expiry, scope, and decision-state validation; branch CI remains to be observed.
