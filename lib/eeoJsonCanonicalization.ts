@@ -54,11 +54,33 @@ function canonicalizeValue(
 
   try {
     if (Array.isArray(value)) {
-      return `[${value
-        .map((item, index) =>
-          canonicalizeValue(item, `${path}[${index}]`, ancestors)
-        )
-        .join(",")}]`;
+      if (Object.getOwnPropertySymbols(value).length > 0) {
+        return fail(path, "symbol-keyed array properties are not supported");
+      }
+
+      const arrayPropertyNames = Object.getOwnPropertyNames(value);
+      if (arrayPropertyNames.length !== value.length + 1) {
+        return fail(path, "sparse arrays or custom array properties are not supported");
+      }
+
+      const items: string[] = [];
+      for (let index = 0; index < value.length; index += 1) {
+        const key = String(index);
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+
+        if (!descriptor) {
+          return fail(path, "sparse arrays are not supported");
+        }
+        if (descriptor.get || descriptor.set) {
+          return fail(path, "array accessor properties are not supported");
+        }
+
+        items.push(
+          canonicalizeValue(value[index], `${path}[${index}]`, ancestors)
+        );
+      }
+
+      return `[${items.join(",")}]`;
     }
 
     const prototype = Object.getPrototypeOf(value);
