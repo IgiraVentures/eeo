@@ -60,6 +60,9 @@ export type RequiredReview =
   | "data_protection_review";
 
 export type AccessObjectType =
+  | "corridor_case"
+  | "corridor_charter"
+  | "corridor_layer_assessment"
   | "claim"
   | "evidence"
   | "source"
