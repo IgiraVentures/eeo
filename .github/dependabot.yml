@@ -10,11 +10,25 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ngabiree"
+    groups:
+      # React and React DOM are a runtime pair and must advance together.
+      react-runtime:
+        applies-to: "version-updates"
+        patterns:
+          - "react"
+          - "react-dom"
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
       # Pin major version upgrades for review — these may require code changes
       - dependency-name: "next"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@supabase/supabase-js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
         update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
