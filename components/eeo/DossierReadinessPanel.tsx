@@ -8,6 +8,7 @@ import { sources } from "@/data/sources";
 import { listCorrectionSubmissions } from "@/lib/correctionsStore";
 import { assessDossierClaimReadiness } from "@/lib/dossierClaimReadiness";
 import { assessReleaseManifestSignoffGate } from "@/lib/releaseManifestSignoffGate";
+import { makeClaimReviewObjectVersion } from "@/lib/reviewObjectVersion";
 import {
   assessReviewSignoffReadiness,
   type ReviewRequirementState,
@@ -58,6 +59,7 @@ export default function DossierReadinessPanel() {
     releaseManifest,
     requirements: claimReviewRequirements,
     signoffs: reviewSignoffs,
+    currentObjectVersions: claims.map(makeClaimReviewObjectVersion),
   });
   const claimIdsWithRequirements = [
     ...new Set(claimReviewRequirements.map((requirement) => requirement.objectId)),
@@ -130,7 +132,7 @@ export default function DossierReadinessPanel() {
         <p className="mt-2 text-xs leading-5">
           {manifestSignoffGate.publicSafeSummary}
         </p>
-        <div className="mt-3 grid gap-2 text-xs sm:grid-cols-5">
+        <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3 xl:grid-cols-6">
           <p>
             <strong>Included claims:</strong>{" "}
             {manifestSignoffGate.includedClaimCount}
@@ -138,6 +140,10 @@ export default function DossierReadinessPanel() {
           <p>
             <strong>Missing requirements:</strong>{" "}
             {manifestSignoffGate.claimsMissingRequirements.length}
+          </p>
+          <p>
+            <strong>Missing versions:</strong>{" "}
+            {manifestSignoffGate.claimsMissingObjectVersions.length}
           </p>
           <p>
             <strong>Pending:</strong>{" "}
