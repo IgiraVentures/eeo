@@ -1,4 +1,6 @@
 import { copperCobaltCorridorPilotSkeleton } from "@/data/corridorDossier";
+import { copperCobaltProvisionalCharter } from "@/data/corridorCharters";
+import { copperCobaltLayerAssessments } from "@/data/crossCuttingLayerAssessments";
 import { claims } from "@/data/claims";
 import { evidenceItems } from "@/data/evidence";
 import { releaseManifest } from "@/data/releaseManifest";
@@ -78,6 +80,8 @@ export default function ReleaseManifestPanel() {
     claims,
     evidenceItems,
     sources,
+    corridorCharter: copperCobaltProvisionalCharter,
+    corridorLayerAssessments: copperCobaltLayerAssessments,
   });
 
   const structuralBlockerCount = releaseReadinessAssessment.blockingStructuralIssues.length;
