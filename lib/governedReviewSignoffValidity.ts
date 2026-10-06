@@ -33,12 +33,12 @@ function isValidDate(value: string | undefined): boolean {
   return Boolean(value && !Number.isNaN(Date.parse(value)));
 }
 
-function isFuture(value: string, now: Date): boolean {
-  return new Date(value).getTime() > now.getTime();
+function isFuture(value: string | undefined, now: Date): boolean {
+  return isValidDate(value) && new Date(value as string).getTime() > now.getTime();
 }
 
-function isExpired(value: string, now: Date): boolean {
-  return new Date(value).getTime() <= now.getTime();
+function isExpired(value: string | undefined, now: Date): boolean {
+  return isValidDate(value) && new Date(value as string).getTime() <= now.getTime();
 }
 
 function bindingsMatch(
