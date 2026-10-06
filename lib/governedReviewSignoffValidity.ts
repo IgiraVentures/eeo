@@ -17,6 +17,8 @@ export type GovernedSignoffValidityIssue =
   | "status_not_satisfying"
   | "invalid_review_timestamp"
   | "invalid_authority_timestamp"
+  | "invalid_authority_expiry"
+  | "invalid_signoff_expiry"
   | "conditioned_without_conditions";
 
 export interface GovernedSignoffValidityAssessment {
@@ -31,8 +33,12 @@ function isValidDate(value: string | undefined): boolean {
   return Boolean(value && !Number.isNaN(Date.parse(value)));
 }
 
-function isExpired(value: string | undefined, now: Date): boolean {
-  return isValidDate(value) && new Date(value as string).getTime() <= now.getTime();
+function isFuture(value: string, now: Date): boolean {
+  return new Date(value).getTime() > now.getTime();
+}
+
+function isExpired(value: string, now: Date): boolean {
+  return new Date(value).getTime() <= now.getTime();
 }
 
 function bindingsMatch(
@@ -102,7 +108,10 @@ export function assessGovernedReviewSignoffValidity({
     issues.add("authority_not_verified");
   }
 
-  if (!isValidDate(signoff.authority.verifiedAt)) {
+  if (
+    !isValidDate(signoff.authority.verifiedAt) ||
+    isFuture(signoff.authority.verifiedAt, now)
+  ) {
     issues.add("invalid_authority_timestamp");
   }
 
@@ -117,19 +126,27 @@ export function assessGovernedReviewSignoffValidity({
     issues.add("authority_scope_mismatch");
   }
 
-  if (isExpired(signoff.authority.expiresAt, now)) {
-    issues.add("authority_expired");
+  if (signoff.authority.expiresAt !== undefined) {
+    if (!isValidDate(signoff.authority.expiresAt)) {
+      issues.add("invalid_authority_expiry");
+    } else if (isExpired(signoff.authority.expiresAt, now)) {
+      issues.add("authority_expired");
+    }
   }
 
-  if (isExpired(signoff.expiresAt, now)) {
-    issues.add("signoff_expired");
+  if (signoff.expiresAt !== undefined) {
+    if (!isValidDate(signoff.expiresAt)) {
+      issues.add("invalid_signoff_expiry");
+    } else if (isExpired(signoff.expiresAt, now)) {
+      issues.add("signoff_expired");
+    }
   }
 
   if (signoff.status !== "approved" && signoff.status !== "conditioned") {
     issues.add("status_not_satisfying");
   }
 
-  if (!isValidDate(signoff.reviewedAt)) {
+  if (!isValidDate(signoff.reviewedAt) || isFuture(signoff.reviewedAt, now)) {
     issues.add("invalid_review_timestamp");
   }
 
