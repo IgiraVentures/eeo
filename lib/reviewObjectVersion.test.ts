@@ -30,6 +30,15 @@ describe("claim review object version", () => {
     expect(first.digestAlgorithm).toBe("sha256");
   });
 
+  it("pins a canonical UTF-8 SHA-256 regression vector", () => {
+    expect(
+      sha256EeoJson({
+        z: "café",
+        a: ["DRC", 55, false],
+      })
+    ).toBe("b3ea12ca0a401aca4b0f07a78ef9daaf5829bcd3f96b18b6cc7e18d41702cfde");
+  });
+
   it("ignores review-process metadata that must not mutate the reviewed object", () => {
     const baseline = makeClaimReviewObjectVersion(cloneClaim());
     const changedReviewMetadata = makeClaimReviewObjectVersion(
