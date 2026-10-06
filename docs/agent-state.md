@@ -114,9 +114,8 @@ Do not add `CLAIM-DRC-CO-002` to the release manifest, mark it approved, create 
 
 ## Last checks run
 
-- 2026-09-30: Baseline React runtime alignment was repaired independently on `main` by PR #149; current `main` CI passed. The P0/P1 release-integrity branch requires a fresh current-base CI run before merge.
-- 2026-09-30: The first P0/P1 CI run passed frozen install, route discipline, temporal dormancy, lint, typecheck, and all release-integrity tests, but full tests stopped on the then-existing `main` React 19.3.0 / ReactDOM 19.2.8 mismatch; build was therefore skipped. This was reproduced on the old `main` baseline and was not introduced by P0/P1.
-- 2026-07-30: Clean `pnpm install --frozen-lockfile` and `pnpm verify` passed after React and ReactDOM alignment; 14 test files and 97 tests passed before later governance tests were added.
-- 2026-07-30: CI passed for the review-requirement model, manifest signoff gate, protected reviewer panel, and reviewer-panel regression increments, including frozen install, route checks, lint, typecheck, tests, and production build.
-- Added unit coverage for governed sign-off version, authority, expiry, scope, and decision-state validation; branch CI remains to be observed.
-- 2026-07-30: Focused component regression coverage verifies blocked governed-signoff state, claim 002 ineligibility, absence of approval controls, and non-disclosure of internal rationale; branch CI passed.
+- 2026-10-05: Current `main` has a coherent frozen lockfile and current dependency baseline; the earlier dangling `@types/node@26.6.2` failure is no longer present on `main`.
+- 2026-10-05: After governance review, the P0/P1 staging branch was hardened to reject future review/authority timestamps, reject malformed supplied expiry timestamps, and pin an exact UTF-8 SHA-256 regression vector. Fresh current-head CI is required before this staging branch can be used to refresh the signed replacement PR; no release authorization is implied.
+- 2026-09-30: Baseline React runtime alignment was repaired independently on `main` by PR #149.
+- 2026-07-30: Clean `pnpm install --frozen-lockfile` and `pnpm verify` passed after React and ReactDOM alignment; later governance increments added further tests.
+- CI must continue to run frozen installation, route checks, temporal dormancy, lint, typecheck, tests, and production build for every candidate integration head.
