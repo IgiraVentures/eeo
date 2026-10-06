@@ -146,6 +146,44 @@ describe("assessGovernedReviewSignoffValidity", () => {
     expect(assessment.issues).toContain("signoff_expired");
   });
 
+  it("rejects future review and authority verification timestamps", () => {
+    const assessment = assessGovernedReviewSignoffValidity({
+      signoff: governedSignoff({
+        reviewedAt: "2026-07-30T19:00:00.000Z",
+        authority: {
+          ...governedSignoff().authority,
+          verifiedAt: "2026-07-30T19:00:00.000Z",
+        },
+      }),
+      requirement,
+      currentObjectVersion,
+      now,
+    });
+
+    expect(assessment.validForReleaseGate).toBe(false);
+    expect(assessment.issues).toContain("invalid_review_timestamp");
+    expect(assessment.issues).toContain("invalid_authority_timestamp");
+  });
+
+  it("rejects supplied malformed authority and signoff expiry timestamps", () => {
+    const assessment = assessGovernedReviewSignoffValidity({
+      signoff: governedSignoff({
+        expiresAt: "not-a-date",
+        authority: {
+          ...governedSignoff().authority,
+          expiresAt: "also-not-a-date",
+        },
+      }),
+      requirement,
+      currentObjectVersion,
+      now,
+    });
+
+    expect(assessment.validForReleaseGate).toBe(false);
+    expect(assessment.issues).toContain("invalid_authority_expiry");
+    expect(assessment.issues).toContain("invalid_signoff_expiry");
+  });
+
   it("rejects blocked decisions and empty conditioned decisions", () => {
     const blocked = assessGovernedReviewSignoffValidity({
       signoff: governedSignoff({ status: "blocked" }),
