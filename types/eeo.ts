@@ -206,6 +206,10 @@ export interface ReleaseManifest {
   recordMode: RecordMode;
   title: string;
   corridor: string;
+  corridorCaseId?: string;
+  corridorCharterId?: string;
+  corridorCharterVersion?: string;
+  crossCuttingLayerAssessmentIds?: string[];
   releaseDate?: string;
   includedClaimIds: string[];
   withheldClaimIds: string[];

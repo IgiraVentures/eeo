@@ -1,6 +1,9 @@
 import type { CorridorDossier } from "@/types/corridorDossier";
+import type { CorridorCharter } from "@/types/corridorCharter";
+import type { CorridorLayerAssessment } from "@/types/crossCuttingLayer";
 import type { Claim, EvidenceItem, Source } from "@/types/eeo";
 import type { MapSafetyClassification, MapSafetyReview } from "@/types/mapSafety";
+import { assessCorridorPublicationReadiness } from "@/lib/corridorGovernance";
 import { assessDossierReadiness } from "@/lib/dossierReadiness";
 import { assessEvidenceIntegrity } from "@/lib/evidenceIntegrity";
 import { canRenderPublicMapLayer } from "@/lib/mapSafety";
@@ -53,6 +56,9 @@ interface MapSafetyReadinessAssessment {
 }
 
 export type ReleaseManifestBlockingIssueType =
+  | "corridor_charter_binding_mismatch"
+  | "corridor_authorization_not_ready"
+  | "mandatory_corridor_layers_not_ready"
   | "dossier_release_not_ready"
   | "dossier_sections_incomplete"
   | "dossier_sections_missing_claims"
@@ -88,6 +94,11 @@ export interface ReleaseManifestReadinessAssessment {
   totalClaims: number;
   approvableClaims: number;
   nonApprovableClaims: number;
+  corridorCharterBindingPasses: boolean;
+  corridorAuthorizationPasses: boolean;
+  corridorAuthorizationBlockerCount: number;
+  corridorLayerReadinessPasses: boolean;
+  corridorLayerBlockerCount: number;
   dossierReady: boolean;
   evidenceIntegrityPasses: boolean;
   sourceReadinessPasses: boolean;
@@ -113,10 +124,49 @@ export function assessReleaseManifestReadiness(params: {
   claims: Claim[];
   evidenceItems: EvidenceItem[];
   sources: Source[];
+  corridorCharter?: CorridorCharter;
+  corridorLayerAssessments?: CorridorLayerAssessment[];
   mapSafetyObjects?: ReleaseManifestMapSafetyObject[];
   mapSafetyReviews?: ReleaseManifestMapSafetyReview[];
 }): ReleaseManifestReadinessAssessment {
   const dossierReadiness = assessDossierReadiness(params.dossier);
+  const usesStructuredCorridorGovernance = Boolean(
+    params.dossier.corridorCaseId ||
+      params.dossier.corridorCharterId ||
+      params.dossier.corridorCharterVersion
+  );
+  const corridorReadiness = usesStructuredCorridorGovernance
+    ? assessCorridorPublicationReadiness({
+        charter: params.corridorCharter,
+        assessments: params.corridorLayerAssessments ?? [],
+      })
+    : { ready: true, blockers: [] };
+
+  const corridorCharterBindingPasses =
+    !usesStructuredCorridorGovernance ||
+    Boolean(
+      params.corridorCharter &&
+        params.dossier.corridorCaseId === params.corridorCharter.corridorCaseId &&
+        params.dossier.corridorCharterId === params.corridorCharter.id &&
+        params.dossier.corridorCharterVersion === params.corridorCharter.version
+    );
+
+  const layerBlockerTypes = new Set([
+    "charter_version_mismatch",
+    "mandatory_layer_unassessed",
+    "mandatory_layer_not_ready",
+    "mandatory_layer_blocked",
+  ]);
+  const corridorLayerBlockerCount = corridorReadiness.blockers.filter((blocker) =>
+    layerBlockerTypes.has(blocker.type)
+  ).length;
+  const corridorAuthorizationBlockerCount =
+    corridorReadiness.blockers.length - corridorLayerBlockerCount;
+  const corridorAuthorizationPasses =
+    corridorCharterBindingPasses &&
+    corridorAuthorizationBlockerCount === 0;
+  const corridorLayerReadinessPasses = corridorLayerBlockerCount === 0;
+
   const evidenceIntegrity = assessEvidenceIntegrity({
     claims: params.claims,
     evidenceItems: params.evidenceItems,
@@ -168,6 +218,25 @@ export function assessReleaseManifestReadiness(params: {
   const blockingStructuralIssues: ReleaseManifestReadinessAssessment["blockingStructuralIssues"] =
     [];
   const reviewFlags: ReleaseManifestReadinessAssessment["reviewFlags"] = [];
+
+  addReadinessItem(
+    blockingStructuralIssues,
+    "corridor_charter_binding_mismatch",
+    corridorCharterBindingPasses ? 0 : 1,
+    "The dossier is not bound to the Corridor Charter version supplied for release review."
+  );
+  addReadinessItem(
+    blockingStructuralIssues,
+    "corridor_authorization_not_ready",
+    corridorAuthorizationBlockerCount,
+    "The Corridor Charter remains missing, unauthorized, incomplete, or insufficiently bounded for public release."
+  );
+  addReadinessItem(
+    blockingStructuralIssues,
+    "mandatory_corridor_layers_not_ready",
+    corridorLayerBlockerCount,
+    "One or more mandatory cross-cutting corridor layers remain unassessed, stale against the Charter version, blocked, or under review."
+  );
 
   addReadinessItem(
     blockingStructuralIssues,
@@ -302,6 +371,11 @@ export function assessReleaseManifestReadiness(params: {
     totalClaims: params.claims.length,
     approvableClaims,
     nonApprovableClaims,
+    corridorCharterBindingPasses,
+    corridorAuthorizationPasses,
+    corridorAuthorizationBlockerCount,
+    corridorLayerReadinessPasses,
+    corridorLayerBlockerCount,
     dossierReady,
     evidenceIntegrityPasses,
     sourceReadinessPasses,
@@ -381,7 +455,13 @@ function isBlockedMapSafetyClassification(
     return true;
   }
 
-  if (classification === "restricted" || classification === "do_not_publish") {
+  if (
+    classification === "delayed_release" ||
+    classification === "metadata_only" ||
+    classification === "restricted" ||
+    classification === "do_not_collect" ||
+    classification === "do_not_publish"
+  ) {
     return true;
   }
 
