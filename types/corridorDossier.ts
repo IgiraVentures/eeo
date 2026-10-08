@@ -4,6 +4,7 @@
  */
 
 import type { RecordMode } from "@/types/eeo";
+import type { EndowmentDomainId } from "@/types/endowmentTaxonomy";
 
 export type CorridorDossierSection =
   | "scope"
@@ -56,6 +57,14 @@ export interface CorridorDossier {
   id: string;
   recordMode: RecordMode;
   title: string;
+  /** Structured corridor references. Optional only for legacy prototype records. */
+  corridorCaseId?: string;
+  corridorCharterId?: string;
+  corridorCharterVersion?: string;
+  primaryDomainId?: EndowmentDomainId;
+  linkedDomainIds?: EndowmentDomainId[];
+  crossCuttingLayerAssessmentIds?: string[];
+  /** Legacy display label retained during migration. */
   corridor: string;
   geography: string;
   commodityFocus: string[];

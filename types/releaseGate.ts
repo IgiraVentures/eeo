@@ -10,6 +10,9 @@ export type ReleaseGateStatus =
   | "withdrawn";
 
 export type ReleaseGateObjectType =
+  | "corridor_case"
+  | "corridor_charter"
+  | "corridor_layer_assessment"
   | "claim"
   | "evidence"
   | "source"
@@ -20,6 +23,16 @@ export type ReleaseGateObjectType =
   | "release_manifest";
 
 export type ReleaseGateBlockerType =
+  | "corridor_charter_missing"
+  | "corridor_not_authorized"
+  | "corridor_authorization_incomplete"
+  | "charter_version_mismatch"
+  | "scope_ambiguity"
+  | "source_rights_unresolved"
+  | "evidence_coverage_insufficient"
+  | "mandatory_layer_unassessed"
+  | "mandatory_layer_not_ready"
+  | "mandatory_layer_blocked"
   | "missing_evidence"
   | "missing_source_limitations"
   | "access_decision_missing"
