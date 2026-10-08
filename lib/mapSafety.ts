@@ -2,8 +2,10 @@ import type { MapSafetyClassification } from "@/types/mapSafety";
 
 /**
  * Public map rendering gate.
- * Open/generalized/aggregated layers can be rendered publicly.
- * Blurred/restricted/do_not_publish require additional controls and are blocked by default.
+ * Only open/generalized/aggregated layers can be rendered publicly by default.
+ * Blurred, delayed-release, metadata-only, restricted, do-not-collect, and
+ * do-not-publish classifications require different handling and remain blocked
+ * from direct public map rendering.
  */
 export function canRenderPublicMapLayer(classification: MapSafetyClassification): boolean {
   return classification === "open" || classification === "generalized" || classification === "aggregated";
