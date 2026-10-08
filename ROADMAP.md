@@ -6,21 +6,26 @@
 
 ## Milestone Register
 
-> **Status key:** "Shipped" = development milestone code is merged and running in the prototype. "Current" = actively being developed. No formal public release tag has been cut yet — see `CHANGELOG.md`.
+> **Canonical status:** `docs/project-status.md` is authoritative for the separate development, operational, authorization, and public-release dimensions. This table reports development posture only.
 
-| Milestone | Actual content | Status |
+| Milestone | Actual content | Development posture |
 |---|---|---|
-| v0.4 | Corrections intake, protected review, triage notes, review activity log | Shipped |
+| v0.4 | Corrections intake, protected review, triage notes, review activity log | Development complete |
 | v0.5 | Claim governance and release-manifest integration | Partial |
-| v0.6 | Endowment doctrine, corridor dossier foundation, source map, map-safety protocol, right-of-reply documentation | Shipped |
-| v0.6.1 | Dossier governance repair pass | Current |
-| v0.7 | Evidence population + dossier release gate | Current |
-| v0.8 | Monitoring signal registry contract (type + docs only) | Current |
-| v0.9 | Access governance + research-to-publication protocol (type + docs only) | Shipped |
-| v1.0 | Internal access decision review preview (inert examples + docs only) | Shipped |
-| v1.1 | Release gate integration design (internal type/helper/docs only) | Shipped |
-| v1.2 | Internal release readiness preview (protected `/review` workspace only) | Shipped |
-| v1.3 | Formal review sign-off contract (types + inert examples + docs only) | Current |
+| v0.6 | Endowment doctrine, corridor dossier foundation, source map, map-safety protocol, right-of-reply documentation | Development complete |
+| v0.6.1 | Dossier governance repair pass | Development complete |
+| v0.7 | Evidence population + dossier release gate | Development complete |
+| v0.8 | Monitoring signal registry contract (type + docs only) | Development complete; contract only |
+| v0.9 | Access governance + research-to-publication protocol | Development complete |
+| v1.0 | Internal access decision review preview | Development complete; rehearsal only |
+| v1.1 | Release gate integration design | Development complete |
+| v1.2 | Internal release readiness preview | Development complete; diagnostic only |
+| v1.3 | Formal review requirement/sign-off contracts and governed-signoff hardening | Development complete; not authoritative for release |
+| pre-v1.4 | Version-bound review integrity + accountable authority + corridor authorization hardening | Active |
+| v1.4 | Funding dossier | Not started |
+| v1.5+ | Temporal/monitoring/scenario activation under governance gates | Deferred |
+
+No milestone is currently marked `release_authorized` or `public_released`. Prototype implementation must not be described as formal launch or signed release.
 
 ## Core sequence
 
@@ -32,9 +37,10 @@
 6. **v1.0** — internal access decision review preview (inert examples + docs only; no public UI, monitoring runtime, forecasting, scoring, or persistence changes)  
 7. **v1.1** — release gate integration design (internal type/helper/docs only; no public release-gate dashboard)  
 8. **v1.2** — internal release readiness preview (protected `/review` workspace only; no public release-gate UI)  
-9. **v1.3** — formal review sign-off contract (types + inert examples + docs; no public UI, no persistence, no manifest enforcement)  
-10. **v1.4** — funding dossier  
-11. **v1.5+** — temporal/monitoring/scenario activation under governance gates
+9. **v1.3** — formal review requirement/sign-off contracts and governed-signoff hardening  
+10. **pre-v1.4** — version-bound review integrity, accountable authority, and corridor authorization hardening  
+11. **v1.4** — funding dossier after release-integrity gates are coherent  
+12. **v1.5+** — temporal/monitoring/scenario activation under governance gates
 
 ## Gate rule before v0.7 starts
 

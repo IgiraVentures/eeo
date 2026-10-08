@@ -1,8 +1,17 @@
 # Changelog
 
-> **Version convention:** This project is pre-release. All milestone code is merged to `main` and running in the prototype. "Shipped" in `ROADMAP.md` means *development milestone complete*; "Unreleased" here means *no formal public release tag has been cut yet*. A formal versioned release will be tagged once the public launch gate conditions in `docs/release-process.md` are satisfied.
+> **Version convention:** This project is pre-release. `docs/project-status.md` is authoritative for development, operational, authorization, and public-release status. Development-complete prototype code is not evidence of accountable release authorization or public launch. A formal versioned release will be tagged only after the public launch gates in `docs/release-process.md` are satisfied.
 
 ## Unreleased
+
+### Pre-v1.4 — Release Integrity Hardening
+
+- Added a canonical project-status register separating development completion, operational readiness, release authorization, and public release.
+- Added deterministic `eeo-json-v1` canonicalization for explicit governed review scopes.
+- Added SHA-256 claim review object-version generation with review-process metadata excluded from the governed content snapshot.
+- Tightened manifest sign-off gating so only current, version-bound, in-scope governed sign-offs can satisfy required review lanes.
+- Kept governed sign-off data empty; no approval, release authorization, or public launch is inferred.
+- Funding-dossier work remains downstream of release-integrity hardening.
 
 ### v1.3 — Formal Review Sign-Off Contract
 

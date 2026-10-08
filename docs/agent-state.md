@@ -2,7 +2,7 @@
 
 ## Last updated
 
-2026-07-30
+2026-09-30
 
 ## Current repo observations
 
@@ -82,11 +82,13 @@ EEO must not be framed as:
 
 ## Current safe next step
 
-Define and test the deterministic `eeo-json-v1` canonicalization and SHA-256 snapshot process that produces reviewable object-version bindings. The process must include only the governed review scope, avoid private or volatile runtime fields, and produce the same digest for semantically identical content.
+The P0/P1 release-integrity branch now defines deterministic `eeo-json-v1` canonicalization, SHA-256 claim review bindings, and a fail-closed manifest gate that requires a current version-bound governed decision.
 
-After canonical snapshot generation is stable, integrate governed-signoff validity into the manifest gate so only a current version-bound, in-scope decision can satisfy a required lane. Keep the governed signoff dataset empty until authenticated authority, durable audit persistence, protected notes, retention, and security controls exist.
+The next safe step after this branch is verified and merged is **P2: operationalize accountable human review**. Define authenticated reviewer identity, role/authority assignment, durable append-only audit storage, protected internal notes, retention/revocation rules, and a controlled decision-entry path. The governed signoff dataset must remain empty until those controls are real.
 
-Do not add `CLAIM-DRC-CO-002` to the release manifest, mark it approved, create governed signoff records, or start a second public corridor while required reviewer fields and operational controls remain pending.
+In parallel, complete **P3: the Copper-Cobalt Corridor Charter** to an explicit internal authorization decision. Do not infer authorization from the existing UI, dossier, illustrative manifest, or roadmap priority.
+
+Do not add `CLAIM-DRC-CO-002` to the release manifest, mark it approved, create production governed signoff records, or start a second public corridor while accountable review and corridor authorization controls remain pending.
 
 ## Open risks
 
@@ -99,7 +101,7 @@ Do not add `CLAIM-DRC-CO-002` to the release manifest, mark it approved, create 
 - Repository-backed signoff records are not a substitute for authenticated workflow, durable audit storage, reviewer authorization checks, protected internal notes, retention controls, or version-bound decisions.
 - The current illustrative manifest is not structurally ready under the governed signoff gate because no current governed signoffs are recorded. This remains visible in the protected reviewer workspace.
 - The protected reviewer panel is a read-only diagnostic surface, not an approval workflow or legal record.
-- `eeo-json-v1` canonicalization is declared but not yet implemented; no content digest should be treated as authoritative until deterministic snapshot generation is defined and tested.
+- `eeo-json-v1` canonicalization and claim review snapshot generation are implemented on the P0/P1 branch, but no content digest should be treated as operational approval until branch CI passes and authenticated reviewer/audit controls exist.
 - CI currently runs frozen installation, route checks, temporal dormancy, lint, typecheck, tests, and build. Keep CI and `pnpm verify` aligned intentionally.
 
 ## Deferred items
@@ -112,6 +114,8 @@ Do not add `CLAIM-DRC-CO-002` to the release manifest, mark it approved, create 
 
 ## Last checks run
 
+- 2026-09-30: Baseline React runtime alignment was repaired independently on `main` by PR #149; current `main` CI passed. The P0/P1 release-integrity branch requires a fresh current-base CI run before merge.
+- 2026-09-30: The first P0/P1 CI run passed frozen install, route discipline, temporal dormancy, lint, typecheck, and all release-integrity tests, but full tests stopped on the then-existing `main` React 19.3.0 / ReactDOM 19.2.8 mismatch; build was therefore skipped. This was reproduced on the old `main` baseline and was not introduced by P0/P1.
 - 2026-07-30: Clean `pnpm install --frozen-lockfile` and `pnpm verify` passed after React and ReactDOM alignment; 14 test files and 97 tests passed before later governance tests were added.
 - 2026-07-30: CI passed for the review-requirement model, manifest signoff gate, protected reviewer panel, and reviewer-panel regression increments, including frozen install, route checks, lint, typecheck, tests, and production build.
 - Added unit coverage for governed sign-off version, authority, expiry, scope, and decision-state validation; branch CI remains to be observed.
