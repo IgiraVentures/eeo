@@ -1,5 +1,5 @@
 /**
- * v1.5 contract — formal review requirements and completed sign-off records.
+ * Release-integrity contract — formal review requirements and completed sign-off records.
  *
  * A requirement states which accountable review lane must be completed for a
  * specific object. A sign-off records that a review decision actually occurred.
@@ -130,9 +130,10 @@ export interface ReviewSignoff {
 /**
  * Immutable reference to the exact object content reviewed.
  *
- * The canonicalization and digest must be produced by a separately controlled
- * process. A mutable timestamp or repository branch name is not a sufficient
- * version binding.
+ * The canonicalization and digest must be produced from an explicit governed
+ * review scope using the deterministic eeo-json-v1 process. Review workflow
+ * metadata must not be smuggled into the governed content snapshot. A mutable
+ * timestamp or repository branch name is not a sufficient version binding.
  */
 export interface ReviewObjectVersionBinding {
   objectType: AccessObjectType;
