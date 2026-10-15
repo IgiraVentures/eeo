@@ -22,7 +22,7 @@
     "sync:corridor-docs": "node scripts/sync-corridor-docs-mirror.mjs"
   },
   "dependencies": {
-    "lucide-react": "^1.49.0",
+    "lucide-react": "^1.55.0",
     "next": "15.5.27",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -34,7 +34,7 @@
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "eslint": "^9.18.0",
     "eslint-config-next": "16.4.0",
     "jsdom": "^30.1.2",
