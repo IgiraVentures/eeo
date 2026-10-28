@@ -14,7 +14,7 @@ function hasAuthorizationMetadata(charter: CorridorCharter): boolean {
   const roles = charter.authorizedByRoles;
   if (
     !timestamp ||
-    !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/.test(timestamp) ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(timestamp) ||
     !roles?.length ||
     !roles.every(
       (role) => role.trim().length > 0 && charter.reviewOwnerRoles.includes(role)
