@@ -5,12 +5,46 @@ import type { ReleaseGateBlocker } from "@/types/releaseGate";
 
 const AUTHORIZED_CORRIDOR_STATUSES: CorridorStatus[] = ["authorized", "active_internal", "limited_beta", "public"];
 
+/**
+ * Structural authorization evidence only. Authentication, approval authority,
+ * immutable review/audit records and signed release remain separate gates.
+ */
+function hasAuthorizationMetadata(charter: CorridorCharter): boolean {
+  const timestamp = charter.authorizedAt;
+  const roles = charter.authorizedByRoles;
+  if (
+    !timestamp ||
+    !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/.test(timestamp) ||
+    !roles?.length ||
+    !roles.every(
+      (role) => role.trim().length > 0 && charter.reviewOwnerRoles.includes(role)
+    )
+  ) {
+    return false;
+  }
+
+  const authorizedTime = Date.parse(timestamp);
+  return (
+    Number.isFinite(authorizedTime) &&
+    new Date(authorizedTime).toISOString() === timestamp &&
+    authorizedTime <= Date.now()
+  );
+}
+
 export function getCorridorAuthorizationBlockers(charter?: CorridorCharter): ReleaseGateBlocker[] {
   if (!charter) return [{ type: "corridor_charter_missing", message: "Corridor cannot proceed to public release without a Corridor Charter.", publicSafeSummary: "A Corridor Charter is required before public release." }];
 
   const blockers: ReleaseGateBlocker[] = [];
 
   if (!AUTHORIZED_CORRIDOR_STATUSES.includes(charter.status) || charter.authorizationDecision !== "go") blockers.push({ type: "corridor_not_authorized", message: "Corridor Charter has not authorized this corridor for public-release work.", objectId: charter.id, publicSafeSummary: "The corridor remains unauthorized for public release." });
+  if (charter.authorizationDecision === "go" && !hasAuthorizationMetadata(charter)) {
+    blockers.push({
+      type: "corridor_authorization_incomplete",
+      message: "A go decision requires an exact authorization timestamp and accountable authorizer roles matching the Charter.",
+      objectId: charter.id,
+      publicSafeSummary: "The Corridor Charter lacks valid recorded authorization metadata.",
+    });
+  }
   if (charter.boundary.unresolvedBoundaryQuestions.length > 0 || !charter.boundary.geographicBoundarySummary.trim() || !charter.boundary.upstreamStart.trim() || !charter.boundary.downstreamStop.trim()) blockers.push({ type: "scope_ambiguity", message: "Corridor Charter still contains unresolved geographic, temporal, upstream, or downstream scope.", objectId: charter.id, publicSafeSummary: "Corridor boundaries must be resolved before public release." });
   if (charter.unresolvedAuthorizationItems.length > 0) blockers.push({ type: "corridor_authorization_incomplete", message: "Corridor Charter contains unresolved authorization requirements.", objectId: charter.id, publicSafeSummary: "Corridor authorization requirements remain incomplete." });
   if (charter.sourceInventoryStatus !== "reviewed" || charter.licenseUseBasisStatus !== "reviewed") blockers.push({ type: "source_rights_unresolved", message: "Source inventory and license/use-basis review are not complete for the corridor scope.", objectId: charter.id, publicSafeSummary: "Source and reuse-basis review must be completed before release." });
