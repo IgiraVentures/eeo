@@ -33,7 +33,11 @@ describe("corridor Charter integration", () => {
     expect(issueTypes).toContain("mandatory_corridor_layers_not_ready");
   });
   it("blocks legacy dossiers that omit structured corridor governance", () => {
-    const { corridorCaseId, corridorCharterId, corridorCharterVersion, crossCuttingLayerAssessmentIds, ...legacy } = copperCobaltCorridorPilotSkeleton;
+    const legacy = { ...copperCobaltCorridorPilotSkeleton };
+    delete legacy.corridorCaseId;
+    delete legacy.corridorCharterId;
+    delete legacy.corridorCharterVersion;
+    delete legacy.crossCuttingLayerAssessmentIds;
     const assessment = assessReleaseManifestReadiness({
       dossier: { ...legacy, releaseReadiness: "release_candidate" },
       claims,
