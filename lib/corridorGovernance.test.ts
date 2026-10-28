@@ -17,11 +17,33 @@ describe("corridor governance", () => {
   });
 
   it("allows readiness only when Charter authorization and every mandatory layer are cleared", () => {
-    const charter = { ...copperCobaltProvisionalCharter, status: "authorized" as const, authorizationDecision: "go" as const, sourceInventoryStatus: "reviewed" as const, licenseUseBasisStatus: "reviewed" as const, evidenceCoverageStatus: "sufficient" as const, unresolvedAuthorizationItems: [], boundary: { ...copperCobaltProvisionalCharter.boundary, unresolvedBoundaryQuestions: [], geographicBoundarySummary: "Approved bounded test geography.", upstreamStart: "Approved upstream boundary.", downstreamStop: "Approved downstream boundary." } };
+    const charter = { ...copperCobaltProvisionalCharter, status: "authorized" as const, authorizationDecision: "go" as const, sourceInventoryStatus: "reviewed" as const, licenseUseBasisStatus: "reviewed" as const, evidenceCoverageStatus: "sufficient" as const, unresolvedAuthorizationItems: [], authorizedAt: "2026-09-29T00:00:00.000Z", authorizedByRoles: ["release authority"], boundary: { ...copperCobaltProvisionalCharter.boundary, unresolvedBoundaryQuestions: [], geographicBoundarySummary: "Approved bounded test geography.", upstreamStart: "Approved upstream boundary.", downstreamStop: "Approved downstream boundary." } };
     const assessments = copperCobaltLayerAssessments.map((assessment) => ({ ...assessment, charterId: charter.id, charterVersion: charter.version, status: "ready" as const, blockers: [] }));
     const result = assessCorridorPublicationReadiness({ charter, assessments });
     expect(result.ready).toBe(true);
     expect(result.blockers).toEqual([]);
+  });
+
+  it("rejects a go decision without actual authorization metadata", () => {
+    const charter = {
+      ...copperCobaltProvisionalCharter,
+      status: "authorized" as const,
+      authorizationDecision: "go" as const,
+    };
+    expect(getCorridorAuthorizationBlockers(charter).map((b) => b.type))
+      .toContain("corridor_authorization_incomplete");
+  });
+
+  it("rejects an invalid authorization timestamp or unassigned authority", () => {
+    const charter = {
+      ...copperCobaltProvisionalCharter,
+      status: "authorized" as const,
+      authorizationDecision: "go" as const,
+      authorizedAt: "not-a-date",
+      authorizedByRoles: ["unassigned reviewer"],
+    };
+    expect(getCorridorAuthorizationBlockers(charter).map((b) => b.type))
+      .toContain("corridor_authorization_incomplete");
   });
 
   it("blocks release when one mandatory layer is absent", () => {
