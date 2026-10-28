@@ -14,6 +14,20 @@ describe("EEO controlled discovery", () => {
       userAgent: "*",
       disallow: expect.arrayContaining(PRIVATE_ROOTS),
     });
+    const rules = Array.isArray(policy.rules) ? policy.rules[0] : policy.rules;
+    const disallow = typeof rules.disallow === "string" ? [rules.disallow] : rules.disallow ?? [];
+    for (const path of [
+      "/review",
+      "/review/login",
+      "/workspace",
+      "/workspace/sources",
+      "/api",
+      "/api/corrections",
+    ]) {
+      expect(disallow.some((prefix) => path.startsWith(prefix))).toBe(true);
+    }
+    expect(policy.host).toBe("https://eeo-ten.vercel.app");
+    expect(policy.sitemap).toBe("https://eeo-ten.vercel.app/sitemap.xml");
   });
 
   it("marks all internal reviewer and workspace pages as non-indexable", () => {
