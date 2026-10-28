@@ -20,7 +20,7 @@ export default async function ReviewLoginPage({
         {authEnabled ? (
           <>
             <p className="text-sm text-stone-700">
-              This internal workspace is protected by an environment password.
+              This internal workspace requires reviewer authentication.
             </p>
             <form action={loginToReviewWorkspace} className="space-y-3 rounded-2xl border border-stone-200 bg-white/80 p-5">
               <label htmlFor="password" className="block text-sm font-semibold text-stone-700">
@@ -30,12 +30,13 @@ export default async function ReviewLoginPage({
                 id="password"
                 name="password"
                 type="password"
+                autoComplete="current-password"
                 required
                 className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-900"
                 placeholder="Enter password"
               />
               {error === "invalid" ? (
-                <p className="text-sm text-red-700">Password invalid. Try again.</p>
+                <p className="text-sm text-red-700">Sign-in failed. Verify your credentials.</p>
               ) : null}
               <button
                 type="submit"
@@ -47,7 +48,7 @@ export default async function ReviewLoginPage({
           </>
         ) : (
           <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            `REVIEW_WORKSPACE_PASSWORD` is not set. Review workspace auth is disabled.
+            Internal review access is unavailable until an administrator configures authentication.
           </p>
         )}
         <Link href="/" className="text-sm underline">
