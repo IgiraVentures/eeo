@@ -1,7 +1,7 @@
 import type { CorridorDossier } from "@/types/corridorDossier";
 import type { CorridorCharter } from "@/types/corridorCharter";
 import type { CorridorLayerAssessment } from "@/types/crossCuttingLayer";
-import type { Claim, EvidenceItem, Source } from "@/types/eeo";
+import type { Claim, EvidenceItem, Source, ReleaseManifest } from "@/types/eeo";
 import type { MapSafetyClassification, MapSafetyReview } from "@/types/mapSafety";
 import { assessCorridorPublicationReadiness } from "@/lib/corridorGovernance";
 import { assessDossierReadiness } from "@/lib/dossierReadiness";
@@ -57,6 +57,7 @@ interface MapSafetyReadinessAssessment {
 
 export type ReleaseManifestBlockingIssueType =
   | "corridor_charter_binding_mismatch"
+  | "release_manifest_binding_mismatch"
   | "corridor_authorization_not_ready"
   | "mandatory_corridor_layers_not_ready"
   | "dossier_release_not_ready"
@@ -95,6 +96,7 @@ export interface ReleaseManifestReadinessAssessment {
   approvableClaims: number;
   nonApprovableClaims: number;
   corridorCharterBindingPasses: boolean;
+  releaseManifestBindingPasses: boolean;
   corridorAuthorizationPasses: boolean;
   corridorAuthorizationBlockerCount: number;
   corridorLayerReadinessPasses: boolean;
@@ -126,30 +128,49 @@ export function assessReleaseManifestReadiness(params: {
   sources: Source[];
   corridorCharter?: CorridorCharter;
   corridorLayerAssessments?: CorridorLayerAssessment[];
+  releaseManifest?: Pick<ReleaseManifest, "corridorCaseId" | "corridorCharterId" | "corridorCharterVersion" | "crossCuttingLayerAssessmentIds">;
   mapSafetyObjects?: ReleaseManifestMapSafetyObject[];
   mapSafetyReviews?: ReleaseManifestMapSafetyReview[];
 }): ReleaseManifestReadinessAssessment {
   const dossierReadiness = assessDossierReadiness(params.dossier);
-  const usesStructuredCorridorGovernance = Boolean(
-    params.dossier.corridorCaseId ||
-      params.dossier.corridorCharterId ||
-      params.dossier.corridorCharterVersion
+  // Missing structured governance must never be treated as authorization.
+  const corridorReadiness = assessCorridorPublicationReadiness({
+    charter: params.corridorCharter,
+    assessments: params.corridorLayerAssessments ?? [],
+  });
+  const corridorCharterBindingPasses = Boolean(
+    params.corridorCharter &&
+      params.dossier.corridorCaseId &&
+      params.dossier.corridorCaseId === params.corridorCharter.corridorCaseId &&
+      params.dossier.corridorCharterId === params.corridorCharter.id &&
+      params.dossier.corridorCharterVersion === params.corridorCharter.version
   );
-  const corridorReadiness = usesStructuredCorridorGovernance
-    ? assessCorridorPublicationReadiness({
-        charter: params.corridorCharter,
-        assessments: params.corridorLayerAssessments ?? [],
-      })
-    : { ready: true, blockers: [] };
-
-  const corridorCharterBindingPasses =
-    !usesStructuredCorridorGovernance ||
-    Boolean(
-      params.corridorCharter &&
-        params.dossier.corridorCaseId === params.corridorCharter.corridorCaseId &&
-        params.dossier.corridorCharterId === params.corridorCharter.id &&
-        params.dossier.corridorCharterVersion === params.corridorCharter.version
-    );
+  const expectedLayerIds = params.dossier.crossCuttingLayerAssessmentIds ?? [];
+  const providedLayerIds = params.releaseManifest?.crossCuttingLayerAssessmentIds ?? [];
+  const assessments = params.corridorLayerAssessments ?? [];
+  const layerIds = assessments.map((assessment) => assessment.id);
+  const noDuplicates = (ids: string[]) => new Set(ids).size === ids.length;
+  const equalSets = (left: string[], right: string[]) =>
+    left.length === right.length && left.every((id) => right.includes(id));
+  const releaseManifestBindingPasses = Boolean(
+    params.releaseManifest &&
+      corridorCharterBindingPasses &&
+      params.releaseManifest.corridorCaseId === params.dossier.corridorCaseId &&
+      params.releaseManifest.corridorCharterId === params.dossier.corridorCharterId &&
+      params.releaseManifest.corridorCharterVersion === params.dossier.corridorCharterVersion &&
+      expectedLayerIds.length > 0 &&
+      noDuplicates(expectedLayerIds) &&
+      noDuplicates(providedLayerIds) &&
+      noDuplicates(layerIds) &&
+      equalSets(providedLayerIds, expectedLayerIds) &&
+      equalSets(providedLayerIds, layerIds) &&
+      assessments.every(
+        (assessment) =>
+          assessment.corridorCaseId === params.corridorCharter?.corridorCaseId &&
+          assessment.charterId === params.corridorCharter?.id &&
+          assessment.charterVersion === params.corridorCharter?.version
+      )
+  );
 
   const layerBlockerTypes = new Set([
     "charter_version_mismatch",
@@ -164,6 +185,7 @@ export function assessReleaseManifestReadiness(params: {
     corridorReadiness.blockers.length - corridorLayerBlockerCount;
   const corridorAuthorizationPasses =
     corridorCharterBindingPasses &&
+    releaseManifestBindingPasses &&
     corridorAuthorizationBlockerCount === 0;
   const corridorLayerReadinessPasses = corridorLayerBlockerCount === 0;
 
@@ -224,6 +246,12 @@ export function assessReleaseManifestReadiness(params: {
     "corridor_charter_binding_mismatch",
     corridorCharterBindingPasses ? 0 : 1,
     "The dossier is not bound to the Corridor Charter version supplied for release review."
+  );
+  addReadinessItem(
+    blockingStructuralIssues,
+    "release_manifest_binding_mismatch",
+    releaseManifestBindingPasses ? 0 : 1,
+    "Release manifest, dossier, Charter, and mandatory layer identifiers must match exactly."
   );
   addReadinessItem(
     blockingStructuralIssues,
@@ -372,6 +400,7 @@ export function assessReleaseManifestReadiness(params: {
     approvableClaims,
     nonApprovableClaims,
     corridorCharterBindingPasses,
+    releaseManifestBindingPasses,
     corridorAuthorizationPasses,
     corridorAuthorizationBlockerCount,
     corridorLayerReadinessPasses,
