@@ -1,4 +1,6 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { afterEach, describe, expect, it, beforeEach, vi } from "vitest";
+
+import * as persistence from "@/lib/eeoJsonPersistence";
 
 import { POST } from "@/app/api/corrections/route";
 import { listCorrectionSubmissions, resetCorrectionsStoreForTests } from "@/lib/correctionsStore";
@@ -6,6 +8,11 @@ import { listCorrectionSubmissions, resetCorrectionsStoreForTests } from "@/lib/
 describe("POST /api/corrections", () => {
   beforeEach(() => {
     resetCorrectionsStoreForTests();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("accepts optional claimId and stores it", async () => {
@@ -65,6 +72,41 @@ describe("POST /api/corrections", () => {
     );
     const stored = listCorrectionSubmissions()[0];
     expect(stored?.claimId).toBe("UNKNOWN-CLAIM");
+  });
+
+  const validRequest = () =>
+    new Request("http://localhost/api/corrections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Test Submitter",
+        email: "submitter@example.com",
+        category: "Factual correction",
+        details: "Correction evidence.",
+      }),
+    });
+
+  it.each([
+    ["VERCEL", "1"],
+    ["DISABLE_EEO_FILE_PERSISTENCE", "true"],
+  ])("rejects intake when %s=%s", async (key, value) => {
+    vi.stubEnv(key, value);
+    const response = await POST(validRequest());
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(((await response.json()) as { error: string }).error).toMatch(/temporarily unavailable/);
+    expect(listCorrectionSubmissions()).toHaveLength(0);
+  });
+
+  it("never acknowledges a failed filesystem write", async () => {
+    vi.stubEnv("VITEST", "false");
+    const write = vi.spyOn(persistence, "atomicWriteJsonSync").mockImplementation(() => {
+      throw new Error("simulated write error");
+    });
+    const response = await POST(validRequest());
+    expect(response.status).toBe(503);
+    expect(write).toHaveBeenCalledOnce();
+    expect(listCorrectionSubmissions()).toHaveLength(0);
   });
 
 });

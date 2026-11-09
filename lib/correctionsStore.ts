@@ -17,6 +17,11 @@ export { CORRECTION_CATEGORIES, isCorrectionCategory } from "@/lib/correctionsSc
 
 const CORRECTIONS_SCHEMA_VERSION = 1 as const;
 
+/** JSON-file persistence is local/single-node only, never durable on Vercel. */
+export function isCorrectionsPersistenceAvailable(): boolean {
+  return process.env.VERCEL !== "1" && process.env.DISABLE_EEO_FILE_PERSISTENCE !== "true";
+}
+
 /** Working set mirrored to disk for single-node deploys (see `.eeo/`). */
 const correctionsStore: CorrectionSubmission[] = [];
 
@@ -30,8 +35,7 @@ function getCorrectionsStorePath(): string {
 
 function correctionsPersistenceEnabled(): boolean {
   if (process.env.VITEST === "true") return false;
-  if (process.env.DISABLE_EEO_FILE_PERSISTENCE === "true") return false;
-  return true;
+  return isCorrectionsPersistenceAvailable();
 }
 
 function normalizeSubmission(s: CorrectionSubmission): CorrectionSubmission {
@@ -78,7 +82,10 @@ function ensureCorrectionsLoadedSync(): void {
 }
 
 function persistCorrectionsSync(): void {
-  if (!correctionsPersistenceEnabled()) return;
+  if (process.env.VITEST === "true") return;
+  if (!isCorrectionsPersistenceAvailable()) {
+    throw new Error("Durable corrections storage is not configured.");
+  }
   try {
     atomicWriteJsonSync(getCorrectionsStorePath(), {
       schemaVersion: CORRECTIONS_SCHEMA_VERSION,
@@ -86,6 +93,7 @@ function persistCorrectionsSync(): void {
     });
   } catch (e) {
     console.error("[eeo] Failed to persist corrections store:", e);
+    throw new Error("Corrections could not be persisted.");
   }
 }
 
@@ -99,9 +107,18 @@ export function resetCorrectionsStoreForTests(): void {
 }
 
 export function addCorrectionSubmission(submission: CorrectionSubmission) {
+  if (!isCorrectionsPersistenceAvailable()) {
+    throw new Error("Durable corrections storage is not configured.");
+  }
   ensureCorrectionsLoadedSync();
   correctionsStore.push(submission);
-  persistCorrectionsSync();
+  try {
+    persistCorrectionsSync();
+  } catch (error) {
+    const index = correctionsStore.indexOf(submission);
+    if (index !== -1) correctionsStore.splice(index, 1);
+    throw error;
+  }
 }
 
 export function listCorrectionSubmissions(): CorrectionSubmission[] {
