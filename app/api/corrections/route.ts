@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   addCorrectionSubmission,
   isCorrectionCategory,
+  isCorrectionsPersistenceAvailable,
   type CorrectionSubmission,
 } from "@/lib/correctionsStore";
 import { claims } from "@/data/claims";
@@ -13,7 +14,16 @@ const MAX_CLAIM_ID = 128;
 const MAX_CLAIM_REFERENCE = 300;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function unavailableResponse() {
+  return NextResponse.json(
+    { error: "Correction submissions are temporarily unavailable. Please try again later." },
+    { status: 503, headers: { "Cache-Control": "no-store" } }
+  );
+}
+
 export async function POST(request: Request) {
+  // Refuse intake before accepting PII on a runtime without a durable store.
+  if (!isCorrectionsPersistenceAvailable()) return unavailableResponse();
   let body: Partial<CorrectionSubmission>;
   try {
     body = (await request.json()) as Partial<CorrectionSubmission>;
@@ -81,7 +91,11 @@ export async function POST(request: Request) {
     ],
   };
 
-  addCorrectionSubmission(submission);
+  try {
+    addCorrectionSubmission(submission);
+  } catch {
+    return unavailableResponse();
+  }
 
   return NextResponse.json({
     id: submission.id,
