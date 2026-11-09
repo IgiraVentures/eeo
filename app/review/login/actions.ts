@@ -4,24 +4,24 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
+  createReviewSessionCookieValue,
   getReviewAuthCookieOptions,
-  isReviewAuthEnabled,
-  isReviewAuthorizedCookieValue,
+  isReviewPasswordValid,
   REVIEW_AUTH_COOKIE_NAME,
 } from "@/lib/reviewAuth";
 
 export async function loginToReviewWorkspace(formData: FormData) {
-  if (!isReviewAuthEnabled()) {
-    redirect("/review");
-  }
-
   const password = formData.get("password");
   const candidate = typeof password === "string" ? password : null;
-  if (!isReviewAuthorizedCookieValue(candidate)) {
+  if (!isReviewPasswordValid(candidate)) {
     redirect("/review/login?error=invalid");
   }
 
+  const session = createReviewSessionCookieValue();
+  if (!session) {
+    redirect("/review/login?error=unavailable");
+  }
   const cookieStore = await cookies();
-  cookieStore.set(REVIEW_AUTH_COOKIE_NAME, String(candidate), getReviewAuthCookieOptions());
+  cookieStore.set(REVIEW_AUTH_COOKIE_NAME, session, getReviewAuthCookieOptions());
   redirect("/review");
 }
