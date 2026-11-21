@@ -82,6 +82,7 @@ export default function ReleaseManifestPanel() {
     sources,
     corridorCharter: copperCobaltProvisionalCharter,
     corridorLayerAssessments: copperCobaltLayerAssessments,
+    releaseManifest,
   });
 
   const structuralBlockerCount = releaseReadinessAssessment.blockingStructuralIssues.length;

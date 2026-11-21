@@ -461,7 +461,14 @@ describe("assessReleaseManifestReadiness", () => {
     });
 
     expect(assessment.sourceReadinessPasses).toBe(true);
-    expect(assessment.blockingStructuralIssues).toEqual([]);
+    // Source reuse flags remain warnings; absent Charter/manifest metadata
+    // still blocks the overall release candidate instead of failing open.
+    expect(issueTypes(assessment)).toEqual(
+      expect.arrayContaining([
+        "corridor_charter_binding_mismatch",
+        "release_manifest_binding_mismatch",
+      ])
+    );
     expect(reviewFlagTypes(assessment)).toEqual(
       expect.arrayContaining([
         "sources_with_unknown_license",
